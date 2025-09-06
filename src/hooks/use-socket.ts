@@ -22,6 +22,7 @@ export function useSocket(
   const [isConnected, setIsConnected] = useState(false);
   const [itPlayerId, setItPlayerId] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(itPlayerId): suppress dependency itPlayerId
   useEffect(() => {
     // Conectar ao servidor
     const socket = io(serverUrl, {
@@ -171,7 +172,7 @@ export function useSocket(
     return () => {
       socket.disconnect();
     };
-  }, [serverUrl, itPlayerId]);
+  }, [serverUrl]);
 
   return {
     socket: socketRef.current,
