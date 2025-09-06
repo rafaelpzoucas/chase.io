@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from "react";
 import { useSocket } from "@/hooks/use-socket";
 import { GAME_CONFIG, PLAYER_COLORS } from "@/utils/constants";
@@ -19,7 +18,6 @@ export function Canvas(
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const { socket, currentPlayer, otherPlayers, isConnected } = useSocket();
 
@@ -84,26 +82,9 @@ export function Canvas(
   useEffect(() => {
     const canvas = canvasRef.current;
     if (isConnected && socket && canvas) {
-      socket.emit("game:initRequest", {
-        playerWidth: GAME_CONFIG.PLAYER_SIZE,
-        playerHeight: GAME_CONFIG.PLAYER_SIZE,
-      });
+      socket.emit("game:initRequest");
     }
   }, [isConnected, socket]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setCanvasSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef?.current;
