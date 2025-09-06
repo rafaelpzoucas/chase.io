@@ -67,21 +67,25 @@ export function useSocket(
       });
     });
 
-    socket.on(
-      "game:playerMoved",
-      (data: { playerId: string; position: { x: number; y: number } }) => {
-        setOtherPlayers((prev) => {
-          const newMap = new Map(prev);
-          const player = newMap.get(data.playerId);
-          if (player) {
-            newMap.set(data.playerId, { ...player, position: data.position });
-          }
-          return newMap;
-        });
-      },
-    );
+    socket.on("game:playersUpdate", (players: Player[]) => {
+      setOtherPlayers((prev) => {
+        const newMap = new Map(prev);
 
-    socket.on("game.playerLeft", (playerId: string) => {
+        players.forEach((player) => {
+          if (player.id === socket.id) {
+            // Atualiza o jogador atual
+            setCurrentPlayer(player);
+          } else {
+            // Atualiza outros jogadores
+            newMap.set(player.id, player);
+          }
+        });
+
+        return newMap;
+      });
+    });
+
+    socket.on("game:playerLeft", (playerId: string) => {
       console.log("Jogador saiu:", playerId);
       setOtherPlayers((prev) => {
         const newMap = new Map(prev);
@@ -109,7 +113,6 @@ export function useSocket(
       },
     );
 
-    // Novo evento: quando o pique muda
     socket.on(
       "game:piqueChanged",
       (data: { playerId: string; players: Player[] }) => {
@@ -130,7 +133,6 @@ export function useSocket(
       },
     );
 
-    // Novo evento: quando o pique é transferido
     socket.on(
       "game:piqueTransferred",
       (data: {

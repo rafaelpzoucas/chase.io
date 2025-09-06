@@ -7,4 +7,5 @@ export interface Player {
   height: number;
   nickname?: string;
   isIt: boolean;
+  velocity?: { x: number; y: number };
 }
