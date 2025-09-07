@@ -1,0 +1,162 @@
+"use client";
+
+import {
+  type CanvasHTMLAttributes,
+  type DetailedHTMLProps,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import { usePartyKit } from "@/hooks/use-partykit";
+import { GAME_CONFIG, PLAYER_COLORS } from "@/utils/constants";
+
+export function CanvasPartykit(
+  props: DetailedHTMLProps<
+    CanvasHTMLAttributes<HTMLCanvasElement>,
+    HTMLCanvasElement
+  >,
+) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>(null);
+
+  const { socket, currentPlayer, otherPlayers, isConnected } = usePartyKit();
+
+  // Função helper para enviar mensagens
+  const sendMessage = useCallback(
+    (type: string, payload?: any) => {
+      if (socket && isConnected) {
+        socket.send(JSON.stringify({ type, payload }));
+      }
+    },
+    [socket, isConnected],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!socket || !isConnected) return;
+
+      const key = e.key.toLowerCase();
+      let direction = "";
+
+      switch (key) {
+        case "w":
+          direction = "up";
+          break;
+        case "a":
+          direction = "left";
+          break;
+        case "s":
+          direction = "down";
+          break;
+        case "d":
+          direction = "right";
+          break;
+        default:
+          return;
+      }
+
+      sendMessage("game:playerInput", { input: direction, state: true });
+    },
+    [sendMessage, isConnected, socket],
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (!socket || !isConnected) return;
+
+      const key = e.key.toLowerCase();
+      let direction = "";
+
+      switch (key) {
+        case "w":
+          direction = "up";
+          break;
+        case "a":
+          direction = "left";
+          break;
+        case "s":
+          direction = "down";
+          break;
+        case "d":
+          direction = "right";
+          break;
+        default:
+          return;
+      }
+
+      sendMessage("game:playerInput", { input: direction, state: false });
+    },
+    [sendMessage, isConnected, socket],
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (isConnected && socket && canvas) {
+      sendMessage("game:initRequest");
+    }
+  }, [isConnected, socket, sendMessage]);
+
+  useEffect(() => {
+    const canvas = canvasRef?.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const gameLoop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Desenha o jogador atual
+      if (currentPlayer) {
+        ctx.fillStyle = currentPlayer.isIt
+          ? PLAYER_COLORS.PIQUE
+          : PLAYER_COLORS.SELECTED;
+        ctx.fillRect(
+          currentPlayer.position.x,
+          currentPlayer.position.y,
+          currentPlayer.width,
+          currentPlayer.height,
+        );
+      }
+
+      // Desenha outros jogadores
+      otherPlayers.forEach((otherPlayer) => {
+        const color = otherPlayer.isIt
+          ? PLAYER_COLORS.PIQUE
+          : PLAYER_COLORS.NORMAL;
+
+        ctx.fillStyle = color;
+        ctx.fillRect(
+          otherPlayer.position.x,
+          otherPlayer.position.y,
+          otherPlayer.width,
+          otherPlayer.height,
+        );
+      });
+
+      animationRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoop();
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [currentPlayer, otherPlayers, handleKeyDown, handleKeyUp]);
+
+  return (
+    <canvas
+      {...props}
+      ref={canvasRef}
+      width={GAME_CONFIG.ARENA_WIDTH}
+      height={GAME_CONFIG.ARENA_HEIGHT}
+      className="border-4"
+    />
+  );
+}
