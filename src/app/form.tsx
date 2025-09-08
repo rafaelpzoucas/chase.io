@@ -42,10 +42,15 @@ export function PlayerForm() {
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // salva o nickname localmente
       localStorage.setItem("nickname", values.nickname);
 
+      if (roomId) {
+        router.push(`/room/${roomId}`);
+        return;
+      }
+
       const response = await fetch(`/api/room?nickname=${values.nickname}`);
+
       if (response.ok) {
         const data = await response.json();
         router.push(`/room/${data.roomId}`);

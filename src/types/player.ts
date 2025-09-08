@@ -9,4 +9,5 @@ export interface Player {
   isIt: boolean;
   velocity?: { x: number; y: number };
   immuneUntil: number;
+  caught_count: number;
 }

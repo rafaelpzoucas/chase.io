@@ -43,29 +43,23 @@ export function CanvasPartykit({
     [socket, isConnected],
   );
 
+  const keyMap: Record<string, "up" | "down" | "left" | "right"> = {
+    w: "up",
+    a: "left",
+    s: "down",
+    d: "right",
+    ArrowUp: "up",
+    ArrowLeft: "left",
+    ArrowDown: "down",
+    ArrowRight: "right",
+  };
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
 
-      const key = e.key.toLowerCase();
-      let direction = "";
-
-      switch (key) {
-        case "w":
-          direction = "up";
-          break;
-        case "a":
-          direction = "left";
-          break;
-        case "s":
-          direction = "down";
-          break;
-        case "d":
-          direction = "right";
-          break;
-        default:
-          return;
-      }
+      const direction = keyMap[e.key];
+      if (!direction) return;
 
       sendMessage("game:playerInput", { input: direction, state: true });
     },
@@ -76,25 +70,8 @@ export function CanvasPartykit({
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
 
-      const key = e.key.toLowerCase();
-      let direction = "";
-
-      switch (key) {
-        case "w":
-          direction = "up";
-          break;
-        case "a":
-          direction = "left";
-          break;
-        case "s":
-          direction = "down";
-          break;
-        case "d":
-          direction = "right";
-          break;
-        default:
-          return;
-      }
+      const direction = keyMap[e.key];
+      if (!direction) return;
 
       sendMessage("game:playerInput", { input: direction, state: false });
     },
@@ -189,12 +166,14 @@ export function CanvasPartykit({
   }, [currentPlayer, otherPlayers, handleKeyDown, handleKeyUp, nickname]);
 
   return (
-    <canvas
-      {...props}
-      ref={canvasRef}
-      width={GAME_CONFIG.ARENA_WIDTH}
-      height={GAME_CONFIG.ARENA_HEIGHT}
-      className="border-4 rounded-lg shadow-lg"
-    />
+    <div>
+      <canvas
+        {...props}
+        ref={canvasRef}
+        width={GAME_CONFIG.ARENA_WIDTH}
+        height={GAME_CONFIG.ARENA_HEIGHT}
+        className="border-4"
+      />
+    </div>
   );
 }
