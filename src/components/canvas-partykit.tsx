@@ -43,23 +43,41 @@ export function CanvasPartykit({
     [socket, isConnected],
   );
 
-  const keyMap: Record<string, "up" | "down" | "left" | "right"> = {
-    w: "up",
-    a: "left",
-    s: "down",
-    d: "right",
-    ArrowUp: "up",
-    ArrowLeft: "left",
-    ArrowDown: "down",
-    ArrowRight: "right",
-  };
-
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
 
-      const direction = keyMap[e.key];
-      if (!direction) return;
+      const key = e.key.toLowerCase();
+      let direction = "";
+
+      switch (key) {
+        case "w":
+          direction = "up";
+          break;
+        case "a":
+          direction = "left";
+          break;
+        case "s":
+          direction = "down";
+          break;
+        case "d":
+          direction = "right";
+          break;
+        case "arrowup":
+          direction = "up";
+          break;
+        case "arrowleft":
+          direction = "left";
+          break;
+        case "arrowdown":
+          direction = "down";
+          break;
+        case "arrowright":
+          direction = "right";
+          break;
+        default:
+          return;
+      }
 
       sendMessage("game:playerInput", { input: direction, state: true });
     },
@@ -70,8 +88,37 @@ export function CanvasPartykit({
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
 
-      const direction = keyMap[e.key];
-      if (!direction) return;
+      const key = e.key.toLowerCase();
+      let direction = "";
+
+      switch (key) {
+        case "w":
+          direction = "up";
+          break;
+        case "a":
+          direction = "left";
+          break;
+        case "s":
+          direction = "down";
+          break;
+        case "d":
+          direction = "right";
+          break;
+        case "arrowup":
+          direction = "up";
+          break;
+        case "arrowleft":
+          direction = "left";
+          break;
+        case "arrowdown":
+          direction = "down";
+          break;
+        case "arrowright":
+          direction = "right";
+          break;
+        default:
+          return;
+      }
 
       sendMessage("game:playerInput", { input: direction, state: false });
     },
