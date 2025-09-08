@@ -10,9 +10,11 @@ interface UsePartyKitReturn {
   itPlayerId: string | null;
 }
 
+const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
+
 export function usePartyKit(
-  host: string = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999",
-  party: string = "game",
+  roomId: string,
+  nickname: string | null,
 ): UsePartyKitReturn {
   const socketRef = useRef<PartySocket | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
@@ -24,22 +26,26 @@ export function usePartyKit(
 
   // biome-ignore lint/correctness/useExhaustiveDependencies(itPlayerId): suppress dependency itPlayerId
   useEffect(() => {
-    // Conectar ao PartyKit
+    if (!roomId) return;
+
+    // Conectar ao PartyKit com roomId específico
     const socket = new PartySocket({
       host,
-      room: party, // Nome da sala/party
+      room: roomId, // Usa o roomId como identificador da sala
+      // Passa o nickname como query parameter se disponível
+      query: nickname ? { nickname } : undefined,
     });
 
     socketRef.current = socket;
 
     // Event listeners
     socket.addEventListener("open", () => {
-      console.log("Conectado ao PartyKit");
+      console.log(`Conectado ao PartyKit - Room: ${roomId}`);
       setIsConnected(true);
     });
 
     socket.addEventListener("close", () => {
-      console.log("Desconectado do PartyKit");
+      console.log(`Desconectado do PartyKit - Room: ${roomId}`);
       setIsConnected(false);
       setCurrentPlayer(null);
       setOtherPlayers(new Map());
@@ -182,7 +188,7 @@ export function usePartyKit(
     return () => {
       socket.close();
     };
-  }, [host, party]);
+  }, [roomId, nickname]);
 
   return {
     socket: socketRef.current,

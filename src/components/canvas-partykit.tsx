@@ -11,16 +11,27 @@ import { usePartyKit } from "@/hooks/use-partykit";
 import { GAME_CONFIG, PLAYER_COLORS } from "@/utils/constants";
 import { getPlayerColor } from "@/utils/getPlayerColors";
 
-export function CanvasPartykit(
-  props: DetailedHTMLProps<
+interface CanvasPartykitProps
+  extends DetailedHTMLProps<
     CanvasHTMLAttributes<HTMLCanvasElement>,
     HTMLCanvasElement
-  >,
-) {
+  > {
+  roomId: string;
+  nickname: string | null;
+}
+
+export function CanvasPartykit({
+  roomId,
+  nickname,
+  ...props
+}: CanvasPartykitProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(null);
 
-  const { socket, currentPlayer, otherPlayers, isConnected } = usePartyKit();
+  const { socket, currentPlayer, otherPlayers, isConnected } = usePartyKit(
+    roomId,
+    nickname,
+  );
 
   // Função helper para enviar mensagens
   const sendMessage = useCallback(
@@ -105,6 +116,18 @@ export function CanvasPartykit(
     const gameLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // // Desenha informações da sala no canto superior esquerdo
+      // ctx.fillStyle = "black";
+      // ctx.font = "16px Arial";
+      // ctx.fillText(`Sala: ${roomId}`, 10, 25);
+      // ctx.fillText(`Jogador: ${nickname}`, 10, 45);
+      // ctx.fillText(`Conectado: ${isConnected ? "Sim" : "Não"}`, 10, 65);
+      // ctx.fillText(
+      //   `Total Jogadores: ${otherPlayers.size + (currentPlayer ? 1 : 0)}`,
+      //   10,
+      //   85,
+      // );
+
       // Desenha o jogador atual
       if (currentPlayer) {
         ctx.fillStyle = getPlayerColor(currentPlayer, true);
@@ -113,6 +136,16 @@ export function CanvasPartykit(
           currentPlayer.position.y,
           currentPlayer.width,
           currentPlayer.height,
+        );
+
+        // Desenha o nome do jogador atual
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          nickname ?? `Unknown Player`,
+          currentPlayer.position.x + currentPlayer.width / 2,
+          currentPlayer.position.y - 5,
         );
       }
 
@@ -124,6 +157,16 @@ export function CanvasPartykit(
           otherPlayer.position.y,
           otherPlayer.width,
           otherPlayer.height,
+        );
+
+        // Desenha o nome do outro jogador (se disponível)
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          otherPlayer.nickname || `Player ${otherPlayer.id.slice(0, 6)}`,
+          otherPlayer.position.x + otherPlayer.width / 2,
+          otherPlayer.position.y - 5,
         );
       });
 
@@ -143,7 +186,7 @@ export function CanvasPartykit(
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [currentPlayer, otherPlayers, handleKeyDown, handleKeyUp]);
+  }, [currentPlayer, otherPlayers, handleKeyDown, handleKeyUp, nickname]);
 
   return (
     <canvas
@@ -151,7 +194,7 @@ export function CanvasPartykit(
       ref={canvasRef}
       width={GAME_CONFIG.ARENA_WIDTH}
       height={GAME_CONFIG.ARENA_HEIGHT}
-      className="border-4"
+      className="border-4 rounded-lg shadow-lg"
     />
   );
 }
