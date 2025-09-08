@@ -22,9 +22,10 @@ export const GAME_CONFIG = {
 
 // Cores dos jogadores
 export const PLAYER_COLORS = {
-  PIQUE: "red", // vermelho
-  NORMAL: "gray", // cinza
-  SELECTED: "green", // verde
+  PIQUE: "red",
+  NORMAL: "gray",
+  SELECTED: "magenta",
+  IMMUNE: "cyan",
 } as const;
 
 // Teclas de movimento

@@ -8,4 +8,5 @@ export interface Player {
   nickname?: string;
   isIt: boolean;
   velocity?: { x: number; y: number };
+  immuneUntil: number;
 }

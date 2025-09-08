@@ -9,6 +9,7 @@ import {
 } from "react";
 import { usePartyKit } from "@/hooks/use-partykit";
 import { GAME_CONFIG, PLAYER_COLORS } from "@/utils/constants";
+import { getPlayerColor } from "@/utils/getPlayerColors";
 
 export function CanvasPartykit(
   props: DetailedHTMLProps<
@@ -106,9 +107,7 @@ export function CanvasPartykit(
 
       // Desenha o jogador atual
       if (currentPlayer) {
-        ctx.fillStyle = currentPlayer.isIt
-          ? PLAYER_COLORS.PIQUE
-          : PLAYER_COLORS.SELECTED;
+        ctx.fillStyle = getPlayerColor(currentPlayer, true);
         ctx.fillRect(
           currentPlayer.position.x,
           currentPlayer.position.y,
@@ -119,11 +118,7 @@ export function CanvasPartykit(
 
       // Desenha outros jogadores
       otherPlayers.forEach((otherPlayer) => {
-        const color = otherPlayer.isIt
-          ? PLAYER_COLORS.PIQUE
-          : PLAYER_COLORS.NORMAL;
-
-        ctx.fillStyle = color;
+        ctx.fillStyle = getPlayerColor(otherPlayer, false);
         ctx.fillRect(
           otherPlayer.position.x,
           otherPlayer.position.y,
