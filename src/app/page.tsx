@@ -1,7 +1,20 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { PlayerForm } from "./form";
 
 export default function Home() {
+  const [nickname, setNickname] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Garantir que está no client
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("nickname");
+      setNickname(stored);
+    }
+  }, []);
+
   return (
     <main className="flex items-center justify-center h-screen">
       <div className="flex items-center justify-center min-h-screen">
@@ -10,7 +23,7 @@ export default function Home() {
             Crie uma sala
           </h2>
           <Card className="p-4">
-            <PlayerForm />
+            <PlayerForm nickname={nickname} />
           </Card>
         </div>
       </div>

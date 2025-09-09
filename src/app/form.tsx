@@ -25,8 +25,10 @@ const formSchema = z.object({
 });
 
 export function PlayerForm({
+  nickname,
   setNickname,
 }: {
+  nickname?: string | null;
   setNickname?: Dispatch<SetStateAction<string | null>>;
 }) {
   const router = useRouter();
@@ -38,7 +40,7 @@ export function PlayerForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nickname: localStorage.getItem("nickname") ?? "",
+      nickname: nickname ?? "",
     },
   });
 

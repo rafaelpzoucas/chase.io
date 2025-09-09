@@ -140,20 +140,9 @@ export function CanvasPartykit({
     const gameLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // // Desenha informações da sala no canto superior esquerdo
-      // ctx.fillStyle = "black";
-      // ctx.font = "16px Arial";
-      // ctx.fillText(`Sala: ${roomId}`, 10, 25);
-      // ctx.fillText(`Jogador: ${nickname}`, 10, 45);
-      // ctx.fillText(`Conectado: ${isConnected ? "Sim" : "Não"}`, 10, 65);
-      // ctx.fillText(
-      //   `Total Jogadores: ${otherPlayers.size + (currentPlayer ? 1 : 0)}`,
-      //   10,
-      //   85,
-      // );
-
       // Desenha o jogador atual
-      if (currentPlayer) {
+      if (currentPlayer && currentPlayer.caught_count < 3) {
+        console.log(currentPlayer);
         ctx.fillStyle = getPlayerColor(currentPlayer, true);
         ctx.fillRect(
           currentPlayer.position.x,
@@ -175,23 +164,25 @@ export function CanvasPartykit({
 
       // Desenha outros jogadores
       otherPlayers.forEach((otherPlayer) => {
-        ctx.fillStyle = getPlayerColor(otherPlayer, false);
-        ctx.fillRect(
-          otherPlayer.position.x,
-          otherPlayer.position.y,
-          otherPlayer.width,
-          otherPlayer.height,
-        );
+        if (otherPlayer.caught_count < 3) {
+          ctx.fillStyle = getPlayerColor(otherPlayer, false);
+          ctx.fillRect(
+            otherPlayer.position.x,
+            otherPlayer.position.y,
+            otherPlayer.width,
+            otherPlayer.height,
+          );
 
-        // Desenha o nome do outro jogador (se disponível)
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          otherPlayer.nickname || `Player ${otherPlayer.id.slice(0, 6)}`,
-          otherPlayer.position.x + otherPlayer.width / 2,
-          otherPlayer.position.y - 5,
-        );
+          // Desenha o nome do outro jogador (se disponível)
+          ctx.fillStyle = "white";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            otherPlayer.nickname || `Player ${otherPlayer.id.slice(0, 6)}`,
+            otherPlayer.position.x + otherPlayer.width / 2,
+            otherPlayer.position.y - 5,
+          );
+        }
       });
 
       animationRef.current = requestAnimationFrame(gameLoop);
