@@ -38,7 +38,7 @@ export function PlayerForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nickname: "",
+      nickname: localStorage.getItem("nickname") ?? "",
     },
   });
 
@@ -48,6 +48,7 @@ export function PlayerForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       localStorage.setItem("nickname", values.nickname);
+
       if (setNickname) {
         setNickname(values.nickname);
       }
