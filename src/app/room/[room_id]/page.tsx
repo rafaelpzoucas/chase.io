@@ -28,12 +28,13 @@ export default function RoomPage() {
   if (!nickname) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">
-            {roomId ? "Entrar na sala" : "Carregando sala..."}
+        <div className="flex flex-col text-center gap-4">
+          <h2 className="text-4xl font-semibold mb-2">
+            {roomId ? `Entrar na sala: ${roomId}` : "Carregando sala..."}
           </h2>
-          <p className="text-gray-600">Sala: {roomId}</p>
-          <PlayerForm />
+          <Card className="p-4">
+            <PlayerForm setNickname={setNickname} />
+          </Card>
         </div>
       </div>
     );

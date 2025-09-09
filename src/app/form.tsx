@@ -2,16 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,11 @@ const formSchema = z.object({
     .max(12, { message: "Apelido deve ter no máximo 12 caracteres." }),
 });
 
-export function PlayerForm() {
+export function PlayerForm({
+  setNickname,
+}: {
+  setNickname?: Dispatch<SetStateAction<string | null>>;
+}) {
   const router = useRouter();
   const params = useParams();
 
@@ -39,10 +42,15 @@ export function PlayerForm() {
     },
   });
 
+  const isSubmitting = form.formState.isSubmitting;
+
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       localStorage.setItem("nickname", values.nickname);
+      if (setNickname) {
+        setNickname(values.nickname);
+      }
 
       if (roomId) {
         router.push(`/room/${roomId}`);
@@ -68,7 +76,6 @@ export function PlayerForm() {
           name="nickname"
           render={({ field }) => (
             <FormItem>
-              {/* <FormLabel>Apelido</FormLabel> */}
               <FormControl>
                 <Input placeholder="Insira seu apelido" {...field} />
               </FormControl>
@@ -76,8 +83,14 @@ export function PlayerForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Criar Sala
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting
+            ? roomId
+              ? "Entrando na sala"
+              : "Criando sala"
+            : roomId
+              ? "Entrar sala"
+              : "Criar sala"}
         </Button>
       </form>
     </Form>
