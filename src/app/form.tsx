@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,16 @@ export function PlayerForm({
       console.error(error);
     }
   }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = localStorage.getItem("nickname");
+    if (stored) {
+      setNickname?.(stored);
+      form.reset({ nickname: stored });
+    }
+  }, [setNickname, form]);
 
   return (
     <Form {...form}>
