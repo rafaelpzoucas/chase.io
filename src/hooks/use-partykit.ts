@@ -5,7 +5,8 @@ import type { Player } from "@/types/player";
 interface UsePartyKitReturn {
   socket: PartySocket | null;
   currentPlayer: Player | null;
-  otherPlayers: Map<string, Player>;
+  activePlayers: Map<string, Player>;
+  eliminatedPlayers: Map<string, Player>;
   isConnected: boolean;
   itPlayerId: string | null;
 }
@@ -18,9 +19,12 @@ export function usePartyKit(
 ): UsePartyKitReturn {
   const socketRef = useRef<PartySocket | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-  const [otherPlayers, setOtherPlayers] = useState<Map<string, Player>>(
+  const [activePlayers, setActivePlayers] = useState<Map<string, Player>>(
     new Map(),
   );
+  const [eliminatedPlayers, setEliminatedPlayers] = useState<
+    Map<string, Player>
+  >(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const [itPlayerId, setItPlayerId] = useState<string | null>(null);
 
@@ -48,7 +52,8 @@ export function usePartyKit(
       console.log(`Desconectado do PartyKit - Room: ${roomId}`);
       setIsConnected(false);
       setCurrentPlayer(null);
-      setOtherPlayers(new Map());
+      setActivePlayers(new Map());
+      setEliminatedPlayers(new Map());
     });
 
     socket.addEventListener("message", (event) => {
@@ -60,84 +65,151 @@ export function usePartyKit(
             console.log("Jogo inicializado:", message.payload);
             setCurrentPlayer(message.payload.player);
 
-            // Adicionar outros jogadores (exceto o jogador atual)
-            const others = new Map<string, Player>();
-            message.payload.players.forEach((player: Player) => {
+            // Separar jogadores ativos (exceto o jogador atual)
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
               if (player.id !== message.payload.playerId) {
-                others.set(player.id, player);
+                activeOthers.set(player.id, player);
               }
             });
-            setOtherPlayers(others);
+            setActivePlayers(activeOthers);
+
+            // Adicionar jogadores eliminados
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
             break;
           }
 
-          case "game:playerJoined":
-            console.log("Jogador entrou:", message.payload);
-            setOtherPlayers((prev) => {
-              const newMap = new Map(prev);
-              newMap.set(message.payload.id, message.payload);
-              return newMap;
+          case "game:playerJoined": {
+            console.log("Jogador entrou:", message.payload.player);
+
+            // Atualizar ambas as listas com os dados do servidor
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
+              if (player.id !== socket.id) {
+                activeOthers.set(player.id, player);
+              }
             });
+            setActivePlayers(activeOthers);
+
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
             break;
+          }
 
-          case "game:playersUpdate":
-            setOtherPlayers((prev) => {
-              const newMap = new Map(prev);
+          case "game:playersUpdate": {
+            // Verificar se o payload tem a estrutura esperada
+            if (
+              message.payload.activePlayers &&
+              message.payload.eliminatedPlayers
+            ) {
+              const activeOthers = new Map<string, Player>();
+              const eliminated = new Map<string, Player>();
 
-              message.payload.forEach((player: Player) => {
+              message.payload.activePlayers.forEach((player: Player) => {
                 if (player.id === socket.id) {
-                  // Atualiza o jogador atual
                   setCurrentPlayer(player);
                 } else {
-                  // Atualiza outros jogadores
-                  newMap.set(player.id, player);
+                  activeOthers.set(player.id, player);
                 }
               });
 
-              return newMap;
-            });
+              message.payload.eliminatedPlayers.forEach((player: Player) => {
+                eliminated.set(player.id, player);
+              });
+
+              setActivePlayers(activeOthers);
+              setEliminatedPlayers(eliminated);
+            } else if (Array.isArray(message.payload)) {
+              // Formato antigo - array de players
+              const activeOthers = new Map<string, Player>();
+
+              message.payload.forEach((player: Player) => {
+                if (player.id === socket.id) {
+                  setCurrentPlayer(player);
+                } else if (player.caught_count < 3) {
+                  activeOthers.set(player.id, player);
+                }
+              });
+
+              setActivePlayers(activeOthers);
+            }
             break;
+          }
 
-          case "game:playerLeft":
-            console.log("Jogador saiu:", message.payload);
-            setOtherPlayers((prev) => {
-              const newMap = new Map(prev);
-              newMap.delete(message.payload);
-              return newMap;
+          case "game:playerLeft": {
+            console.log("Jogador saiu:", message.payload.playerId);
+
+            // Atualizar ambas as listas com os dados do servidor
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
+              if (player.id !== socket.id) {
+                activeOthers.set(player.id, player);
+              }
             });
+            setActivePlayers(activeOthers);
 
-            if (message.payload === itPlayerId) {
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
+
+            if (message.payload.playerId === itPlayerId) {
               setItPlayerId(null);
             }
             break;
+          }
 
-          case "game:started":
+          case "game:started": {
             console.log("Jogo iniciado! Pique:", message.payload.itPlayerId);
             setItPlayerId(message.payload.itPlayerId);
 
-            // Atualiza a cor do jogador atual se ele for o pique
-            if (message.payload.itPlayerId === socket.id) {
-              setCurrentPlayer((prev) =>
-                prev ? { ...prev, isIt: true, color: "red" } : null,
-              );
-            }
+            // Atualizar listas com dados do servidor
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
+              if (player.id === socket.id) {
+                setCurrentPlayer(player);
+              } else {
+                activeOthers.set(player.id, player);
+              }
+            });
+            setActivePlayers(activeOthers);
+
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
             break;
+          }
 
           case "game:piqueChanged": {
             console.log("Pique mudou para:", message.payload.playerId);
             setItPlayerId(message.payload.playerId);
 
-            // Atualiza o estado dos jogadores
-            const piqueOthers = new Map<string, Player>();
-            message.payload.players.forEach((player: Player) => {
-              if (player.id !== socket.id) {
-                piqueOthers.set(player.id, player);
-              } else {
-                // Atualiza o jogador atual
+            // Atualizar listas com dados do servidor
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
+              if (player.id === socket.id) {
                 setCurrentPlayer(player);
+              } else {
+                activeOthers.set(player.id, player);
               }
             });
-            setOtherPlayers(piqueOthers);
+            setActivePlayers(activeOthers);
+
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
             break;
           }
 
@@ -147,23 +219,38 @@ export function usePartyKit(
             );
             setItPlayerId(message.payload.toPlayerId);
 
-            // Atualiza o estado dos jogadores
-            const transferOthers = new Map<string, Player>();
-            message.payload.players.forEach((player: Player) => {
-              if (player.id !== socket.id) {
-                transferOthers.set(player.id, player);
-              } else {
-                // Atualiza o jogador atual
+            // Atualizar listas com dados do servidor
+            const activeOthers = new Map<string, Player>();
+            message.payload.activePlayers.forEach((player: Player) => {
+              if (player.id === socket.id) {
                 setCurrentPlayer(player);
+              } else {
+                activeOthers.set(player.id, player);
               }
             });
-            setOtherPlayers(transferOthers);
+            setActivePlayers(activeOthers);
+
+            const eliminated = new Map<string, Player>();
+            message.payload.eliminatedPlayers.forEach((player: Player) => {
+              eliminated.set(player.id, player);
+            });
+            setEliminatedPlayers(eliminated);
 
             // Mostra mensagem se o jogador atual foi envolvido na transferência
             if (message.payload.fromPlayerId === socket.id) {
               console.log("Você passou o pique!");
             } else if (message.payload.toPlayerId === socket.id) {
               console.log("Você está no pique agora!");
+            }
+
+            // Verificar se o jogador atual foi eliminado
+            const currentPlayerEliminated =
+              message.payload.eliminatedPlayers.find(
+                (player: Player) => player.id === socket.id,
+              );
+            if (currentPlayerEliminated) {
+              console.log("Você foi eliminado!");
+              setCurrentPlayer(currentPlayerEliminated);
             }
             break;
           }
@@ -193,7 +280,8 @@ export function usePartyKit(
   return {
     socket: socketRef.current,
     currentPlayer,
-    otherPlayers,
+    activePlayers,
+    eliminatedPlayers,
     isConnected,
     itPlayerId,
   };

@@ -28,10 +28,13 @@ export function CanvasPartykit({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(null);
 
-  const { socket, currentPlayer, otherPlayers, isConnected } = usePartyKit(
-    roomId,
-    nickname,
-  );
+  const {
+    socket,
+    currentPlayer,
+    activePlayers,
+    eliminatedPlayers,
+    isConnected,
+  } = usePartyKit(roomId, nickname);
 
   // Função helper para enviar mensagens
   const sendMessage = useCallback(
@@ -46,6 +49,9 @@ export function CanvasPartykit({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
+
+      // Se o jogador atual foi eliminado, não processa mais inputs
+      if (currentPlayer && currentPlayer.caught_count >= 3) return;
 
       const key = e.key.toLowerCase();
       let direction = "";
@@ -81,12 +87,15 @@ export function CanvasPartykit({
 
       sendMessage("game:playerInput", { input: direction, state: true });
     },
-    [sendMessage, isConnected, socket],
+    [sendMessage, isConnected, socket, currentPlayer],
   );
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
+
+      // Se o jogador atual foi eliminado, não processa mais inputs
+      if (currentPlayer && currentPlayer.caught_count >= 3) return;
 
       const key = e.key.toLowerCase();
       let direction = "";
@@ -122,7 +131,7 @@ export function CanvasPartykit({
 
       sendMessage("game:playerInput", { input: direction, state: false });
     },
-    [sendMessage, isConnected, socket],
+    [sendMessage, isConnected, socket, currentPlayer],
   );
 
   useEffect(() => {
@@ -140,9 +149,8 @@ export function CanvasPartykit({
     const gameLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Desenha o jogador atual
+      // Desenha o jogador atual (se ainda estiver ativo)
       if (currentPlayer && currentPlayer.caught_count < 3) {
-        console.log(currentPlayer);
         ctx.fillStyle = getPlayerColor(currentPlayer, true);
         ctx.fillRect(
           currentPlayer.position.x,
@@ -162,28 +170,83 @@ export function CanvasPartykit({
         );
       }
 
-      // Desenha outros jogadores
-      otherPlayers.forEach((otherPlayer) => {
-        if (otherPlayer.caught_count < 3) {
-          ctx.fillStyle = getPlayerColor(otherPlayer, false);
-          ctx.fillRect(
-            otherPlayer.position.x,
-            otherPlayer.position.y,
-            otherPlayer.width,
-            otherPlayer.height,
-          );
+      // Desenha jogadores ativos (exceto o jogador atual)
+      activePlayers.forEach((activePlayer) => {
+        // Não desenhar o jogador atual novamente se ele já foi desenhado acima
+        if (currentPlayer && activePlayer.id === currentPlayer.id) return;
 
-          // Desenha o nome do outro jogador (se disponível)
-          ctx.fillStyle = "white";
-          ctx.font = "12px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText(
-            otherPlayer.nickname || `Player ${otherPlayer.id.slice(0, 6)}`,
-            otherPlayer.position.x + otherPlayer.width / 2,
-            otherPlayer.position.y - 5,
-          );
-        }
+        ctx.fillStyle = getPlayerColor(activePlayer, false);
+        ctx.fillRect(
+          activePlayer.position.x,
+          activePlayer.position.y,
+          activePlayer.width,
+          activePlayer.height,
+        );
+
+        // Desenha o nome do jogador ativo
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          activePlayer.nickname || `Player ${activePlayer.id.slice(0, 6)}`,
+          activePlayer.position.x + activePlayer.width / 2,
+          activePlayer.position.y - 5,
+        );
       });
+
+      // Opcional: Desenhar jogadores eliminados como "fantasmas" (com transparência)
+      eliminatedPlayers.forEach((eliminatedPlayer) => {
+        // Não desenhar o jogador atual novamente se ele foi eliminado
+        if (currentPlayer && eliminatedPlayer.id === currentPlayer.id) return;
+
+        ctx.save();
+        ctx.globalAlpha = 0.3; // Transparência para jogadores eliminados
+
+        ctx.fillStyle = getPlayerColor(eliminatedPlayer, false);
+        ctx.fillRect(
+          eliminatedPlayer.position.x,
+          eliminatedPlayer.position.y,
+          eliminatedPlayer.width,
+          eliminatedPlayer.height,
+        );
+
+        // Desenha o nome do jogador eliminado
+        ctx.fillStyle = "gray";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `${eliminatedPlayer.nickname || `Player ${eliminatedPlayer.id.slice(0, 6)}`} (X)`,
+          eliminatedPlayer.position.x + eliminatedPlayer.width / 2,
+          eliminatedPlayer.position.y - 5,
+        );
+
+        ctx.restore();
+      });
+
+      // Se o jogador atual foi eliminado, mostrar mensagem
+      if (currentPlayer && currentPlayer.caught_count >= 3) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "white";
+        ctx.font = "48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          "VOCÊ FOI ELIMINADO!",
+          canvas.width / 2,
+          canvas.height / 2 - 30,
+        );
+
+        ctx.font = "24px Arial";
+        ctx.fillText(
+          "Assista o resto da partida",
+          canvas.width / 2,
+          canvas.height / 2 + 20,
+        );
+
+        ctx.restore();
+      }
 
       animationRef.current = requestAnimationFrame(gameLoop);
     };
@@ -201,7 +264,14 @@ export function CanvasPartykit({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [currentPlayer, otherPlayers, handleKeyDown, handleKeyUp, nickname]);
+  }, [
+    currentPlayer,
+    activePlayers,
+    eliminatedPlayers,
+    handleKeyDown,
+    handleKeyUp,
+    nickname,
+  ]);
 
   return (
     <div>
