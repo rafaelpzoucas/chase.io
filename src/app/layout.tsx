@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Pixelify_Sans } from "next/font/google";
+import { Pixelify_Sans, Tiny5 } from "next/font/google";
 import "./globals.css";
 
 const pixelify = Pixelify_Sans({
   variable: "--font-pixelify_sans",
   subsets: ["latin"],
+});
+
+const tiny5 = Tiny5({
+  variable: "--font-tiny5",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -19,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${pixelify.variable} antialiased dark`}>
-        {children}
-      </body>
+      <body className={`${tiny5.variable} antialiased dark`}>{children}</body>
     </html>
   );
 }
