@@ -131,7 +131,7 @@ export function GameUI({
                       <span className="text-muted-foreground">(você)</span>
                     ) : null}
                     {player.isIt && (
-                      <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">
+                      <span className="text-xs bg-red-500 text-white px-2 py-1">
                         PIQUE
                       </span>
                     )}
@@ -182,7 +182,7 @@ export function GameUI({
                       {isYou ? (
                         <span className="text-muted-foreground">(você)</span>
                       ) : null}
-                      <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">
+                      <span className="text-xs bg-gray-500 text-white px-2 py-1">
                         ELIMINADO
                       </span>
                     </span>
