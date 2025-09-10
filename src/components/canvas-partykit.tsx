@@ -194,60 +194,6 @@ export function CanvasPartykit({
         );
       });
 
-      // Opcional: Desenhar jogadores eliminados como "fantasmas" (com transparência)
-      eliminatedPlayers.forEach((eliminatedPlayer) => {
-        // Não desenhar o jogador atual novamente se ele foi eliminado
-        if (currentPlayer && eliminatedPlayer.id === currentPlayer.id) return;
-
-        ctx.save();
-        ctx.globalAlpha = 0.3; // Transparência para jogadores eliminados
-
-        ctx.fillStyle = getPlayerColor(eliminatedPlayer, false);
-        ctx.fillRect(
-          eliminatedPlayer.position.x,
-          eliminatedPlayer.position.y,
-          eliminatedPlayer.width,
-          eliminatedPlayer.height,
-        );
-
-        // Desenha o nome do jogador eliminado
-        ctx.fillStyle = "gray";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          `${eliminatedPlayer.nickname || `Player ${eliminatedPlayer.id.slice(0, 6)}`} (X)`,
-          eliminatedPlayer.position.x + eliminatedPlayer.width / 2,
-          eliminatedPlayer.position.y - 5,
-        );
-
-        ctx.restore();
-      });
-
-      // Se o jogador atual foi eliminado, mostrar mensagem
-      if (currentPlayer && currentPlayer.caught_count >= 3) {
-        ctx.save();
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = "white";
-        ctx.font = "48px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          "VOCÊ FOI ELIMINADO!",
-          canvas.width / 2,
-          canvas.height / 2 - 30,
-        );
-
-        ctx.font = "24px Arial";
-        ctx.fillText(
-          "Assista o resto da partida",
-          canvas.width / 2,
-          canvas.height / 2 + 20,
-        );
-
-        ctx.restore();
-      }
-
       animationRef.current = requestAnimationFrame(gameLoop);
     };
 
@@ -264,14 +210,7 @@ export function CanvasPartykit({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [
-    currentPlayer,
-    activePlayers,
-    eliminatedPlayers,
-    handleKeyDown,
-    handleKeyUp,
-    nickname,
-  ]);
+  }, [currentPlayer, activePlayers, handleKeyDown, handleKeyUp, nickname]);
 
   return (
     <div>

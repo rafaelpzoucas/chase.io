@@ -5,11 +5,11 @@ export function getPlayerColor(
   player: Player,
   isCurrentPlayer: boolean,
 ): string {
-  if (player.immuneUntil && Date.now() < player.immuneUntil) {
-    return PLAYER_COLORS.IMMUNE; // amarelo
-  }
-
   if (player.isIt) return PLAYER_COLORS.PIQUE;
+
+  if (player.immuneUntil && Date.now() < player.immuneUntil) {
+    return PLAYER_COLORS.IMMUNE;
+  }
 
   if (isCurrentPlayer) return PLAYER_COLORS.SELECTED;
 

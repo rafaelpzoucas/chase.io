@@ -8,7 +8,6 @@ import { Trophy } from "@/components/icons/trophy";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -87,6 +86,8 @@ export function GameUI({
   useEffect(() => {
     if (finalActivePlayers.length === 1 && finalEliminatedPlayers.length > 0) {
       setIsFinished(true);
+    } else if (finalActivePlayers.length > 1) {
+      setIsFinished(false);
     }
   }, [finalActivePlayers.length, finalEliminatedPlayers.length]);
 
