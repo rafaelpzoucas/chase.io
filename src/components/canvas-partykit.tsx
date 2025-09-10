@@ -9,6 +9,8 @@ import {
 } from "react";
 import { usePartyKit } from "@/hooks/use-partykit";
 import { GAME_CONFIG, PLAYER_COLORS } from "@/utils/constants";
+import { drawPixelatedRoundedRect } from "@/utils/drawPixelRoundedRect";
+import { drawPlayerBadge } from "@/utils/drawPlayerBadge";
 import { getPlayerColor } from "@/utils/getPlayerColors";
 
 interface CanvasPartykitProps
@@ -148,49 +150,63 @@ export function CanvasPartykit({
 
     const gameLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = false;
+
+      // PRIMEIRA FASE: Desenha todos os corpos dos jogadores
 
       // Desenha o jogador atual (se ainda estiver ativo)
       if (currentPlayer && currentPlayer.caught_count < 3) {
         ctx.fillStyle = getPlayerColor(currentPlayer, true);
-        ctx.fillRect(
+
+        drawPixelatedRoundedRect(
+          ctx,
           currentPlayer.position.x,
           currentPlayer.position.y,
           currentPlayer.width,
           currentPlayer.height,
-        );
-
-        // Desenha o nome do jogador atual
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          nickname ?? `Unknown Player`,
-          currentPlayer.position.x + currentPlayer.width / 2,
-          currentPlayer.position.y - 5,
+          6, // raio das bordas
+          3,
         );
       }
 
       // Desenha jogadores ativos (exceto o jogador atual)
       activePlayers.forEach((activePlayer) => {
-        // Não desenhar o jogador atual novamente se ele já foi desenhado acima
         if (currentPlayer && activePlayer.id === currentPlayer.id) return;
 
         ctx.fillStyle = getPlayerColor(activePlayer, false);
-        ctx.fillRect(
+
+        drawPixelatedRoundedRect(
+          ctx,
           activePlayer.position.x,
           activePlayer.position.y,
           activePlayer.width,
           activePlayer.height,
+          6, // raio das bordas
+          3,
         );
+      });
 
-        // Desenha o nome do jogador ativo
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
+      // SEGUNDA FASE: Desenha todos os badges por último (ficam por cima de tudo)
+
+      // Badge do jogador atual
+      if (currentPlayer && currentPlayer.caught_count < 3) {
+        drawPlayerBadge(
+          ctx,
+          nickname ?? `Unknown Player`,
+          currentPlayer.position.x + currentPlayer.width / 2,
+          currentPlayer.position.y - 15,
+        );
+      }
+
+      // Badges dos jogadores ativos
+      activePlayers.forEach((activePlayer) => {
+        if (currentPlayer && activePlayer.id === currentPlayer.id) return;
+
+        drawPlayerBadge(
+          ctx,
           activePlayer.nickname || `Player ${activePlayer.id.slice(0, 6)}`,
           activePlayer.position.x + activePlayer.width / 2,
-          activePlayer.position.y - 5,
+          activePlayer.position.y - 15,
         );
       });
 
@@ -219,7 +235,7 @@ export function CanvasPartykit({
         ref={canvasRef}
         width={GAME_CONFIG.ARENA_WIDTH}
         height={GAME_CONFIG.ARENA_HEIGHT}
-        className="border-4"
+        className="border-4 border-secondary"
       />
     </div>
   );

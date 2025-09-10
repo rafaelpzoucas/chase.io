@@ -92,8 +92,8 @@ export function GameUI({
   }, [finalActivePlayers.length, finalEliminatedPlayers.length]);
 
   return (
-    <>
-      <Card className="p-4">
+    <div className="flex flex-col">
+      <Card className="p-4 border-4 border-secondary">
         <header className="flex flex-row items-start justify-between w-[400px] gap-8">
           <div>
             <h1 className="text-2xl font-bold mb-2">Sala: {roomId}</h1>
@@ -130,11 +130,6 @@ export function GameUI({
                     {isYou ? (
                       <span className="text-muted-foreground">(você)</span>
                     ) : null}
-                    {player.isIt && (
-                      <span className="text-xs bg-red-500 text-white px-2 py-1">
-                        PIQUE
-                      </span>
-                    )}
                   </span>
 
                   <span className="flex flex-row gap-1">
@@ -205,6 +200,34 @@ export function GameUI({
         )}
       </Card>
 
+      <Card className="p-4 border-4 border-secondary w-full">
+        <h2 className="text-2xl font-bold">Regras do Jogo</h2>
+
+        <div className="space-y-1 text-base">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 aspect-square bg-[red]" />
+            <span>
+              O jogador vermelho é o <strong>PEGADOR</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 aspect-square bg-[cyan]" />
+            <span>
+              Após <strong>PEGAR</strong>, você fica{" "}
+              <strong>IMUNE por 3 segundos</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Trophy variant="solid" className="fill-amber-500 w-4 h-4" />
+            <span>
+              Ganha quem <strong>sobreviver por ÚLTIMO</strong>
+            </span>
+          </div>
+        </div>
+      </Card>
+
       <AlertDialog open={isFinished} onOpenChange={setIsFinished}>
         <AlertDialogContent className="space-y-8">
           <AlertDialogHeader>
@@ -249,6 +272,6 @@ export function GameUI({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

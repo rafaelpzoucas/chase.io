@@ -41,8 +41,8 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="flex flex-row items-center justify-center h-screen">
-      <div className="flex items-center gap-6">
+    <div className="flex flex-row items-center justify-center min-h-screen">
+      <div className="flex items-start gap- p-4 scale-90 2xl:scale-100">
         <GameUI nickname={nickname} roomId={roomId} />
 
         <div className="flex flex-col items-center justify-center">
