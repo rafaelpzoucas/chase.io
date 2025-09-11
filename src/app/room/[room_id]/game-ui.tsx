@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HeartSolid } from "@/components/icons/heart";
 import { Logout } from "@/components/icons/logout";
@@ -28,6 +28,9 @@ export function GameUI({
   nickname: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const isDebug = searchParams.get("debug") === "true";
 
   const {
     socket,
@@ -228,7 +231,17 @@ export function GameUI({
         </div>
       </Card>
 
-      <AlertDialog open={isFinished} onOpenChange={setIsFinished}>
+      {isDebug && (
+        <Card className="fixed bottom-0 left-0 ">
+          {[...activePlayers, ...eliminatedPlayers].map(([id, player]) => (
+            <p key={id}>
+              {player.nickname} caughtCount: {player.caughtCount}
+            </p>
+          ))}
+        </Card>
+      )}
+
+      <AlertDialog open={isFinished && !isDebug} onOpenChange={setIsFinished}>
         <AlertDialogContent className="space-y-8">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-4xl text-muted-foreground uppercase">

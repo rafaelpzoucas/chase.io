@@ -9,6 +9,7 @@ interface UsePartyKitReturn {
   eliminatedPlayers: Map<string, Player>;
   isConnected: boolean;
   itPlayerId: string | null;
+  isX1: boolean;
 }
 
 const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
@@ -27,6 +28,7 @@ export function usePartyKit(
   >(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const [itPlayerId, setItPlayerId] = useState<string | null>(null);
+  const [isX1, setIsX1] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies(itPlayerId): suppress dependency itPlayerId
   useEffect(() => {
@@ -255,6 +257,18 @@ export function usePartyKit(
             break;
           }
 
+          case "game:twoPlayerModeStarted": {
+            console.log("Modo x1");
+            setIsX1(true);
+            break;
+          }
+
+          case "game:game:twoPlayerModeFinished": {
+            console.log("Modo x1 acabou");
+            setIsX1(false);
+            break;
+          }
+
           case "pong":
             console.log("Pong recebido");
             break;
@@ -284,5 +298,6 @@ export function usePartyKit(
     eliminatedPlayers,
     isConnected,
     itPlayerId,
+    isX1,
   };
 }
