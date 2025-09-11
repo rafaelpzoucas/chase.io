@@ -49,6 +49,17 @@ export function CanvasPartykit({
     [socket, isConnected],
   );
 
+  // Função para resetar todos os inputs
+  const resetAllInputs = useCallback(() => {
+    if (!socket || !isConnected) return;
+
+    const directions = ["up", "down", "left", "right"];
+
+    directions.forEach((direction) => {
+      sendMessage("game:playerInput", { input: direction, state: false });
+    });
+  }, [sendMessage, isConnected, socket]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!socket || !isConnected) return;
@@ -155,6 +166,9 @@ export function CanvasPartykit({
     let timeout: NodeJS.Timeout;
 
     if (isX1) {
+      // RESET TODOS OS INPUTS QUANDO O X1 COMEÇAR
+      resetAllInputs();
+
       // Ativa a animação
       x1AnimationState.current.isActive = true;
       x1AnimationState.current.fade = 0;
@@ -174,7 +188,7 @@ export function CanvasPartykit({
         clearTimeout(timeout);
       }
     };
-  }, [isX1]);
+  }, [isX1, resetAllInputs]);
 
   useEffect(() => {
     const canvas = canvasRef?.current;
