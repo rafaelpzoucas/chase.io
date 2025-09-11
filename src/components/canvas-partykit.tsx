@@ -53,7 +53,7 @@ export function CanvasPartykit({
       if (!socket || !isConnected) return;
 
       // Se o jogador atual foi eliminado, não processa mais inputs
-      if (currentPlayer && currentPlayer.caught_count >= 3) return;
+      if (currentPlayer && currentPlayer.caughtCount >= 3) return;
 
       const key = e.key.toLowerCase();
       let direction = "";
@@ -97,7 +97,7 @@ export function CanvasPartykit({
       if (!socket || !isConnected) return;
 
       // Se o jogador atual foi eliminado, não processa mais inputs
-      if (currentPlayer && currentPlayer.caught_count >= 3) return;
+      if (currentPlayer && currentPlayer.caughtCount >= 3) return;
 
       const key = e.key.toLowerCase();
       let direction = "";
@@ -155,7 +155,7 @@ export function CanvasPartykit({
       // PRIMEIRA FASE: Desenha todos os corpos dos jogadores
 
       // Desenha o jogador atual (se ainda estiver ativo)
-      if (currentPlayer && currentPlayer.caught_count < 3) {
+      if (currentPlayer && currentPlayer.caughtCount < 3) {
         ctx.fillStyle = getPlayerColor(currentPlayer, true);
 
         drawPixelatedRoundedRect(
@@ -189,7 +189,7 @@ export function CanvasPartykit({
       // SEGUNDA FASE: Desenha todos os badges por último (ficam por cima de tudo)
 
       // Badge do jogador atual
-      if (currentPlayer && currentPlayer.caught_count < 3) {
+      if (currentPlayer && currentPlayer.caughtCount < 3) {
         drawPlayerBadge(
           ctx,
           nickname ?? `Unknown Player`,

@@ -7,13 +7,7 @@ export function getPlayerColor(
 ): string {
   if (player.isIt) return PLAYER_COLORS.PIQUE;
 
-  console.log({
-    immuneUntil: player.immuneUntil,
-    dateNow: Date.now(),
-    isImmune: Date.now() < player.immuneUntil,
-  });
-
-  if (player.immuneUntil && Date.now() < player.immuneUntil) {
+  if (player.isImmune) {
     return PLAYER_COLORS.IMMUNE;
   }
 

@@ -6,8 +6,8 @@ export interface Player {
   width: number;
   height: number;
   nickname?: string;
-  isIt: boolean;
   velocity?: { x: number; y: number };
-  immuneUntil: number;
-  caught_count: number;
+  caughtCount: number;
+  isIt: boolean;
+  isImmune: boolean;
 }

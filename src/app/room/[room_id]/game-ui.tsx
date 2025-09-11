@@ -56,8 +56,8 @@ export function GameUI({
     );
 
     if (!isCurrentPlayerInActive && !isCurrentPlayerInEliminated) {
-      // Adiciona o jogador atual na lista apropriada baseado no caught_count
-      if (currentPlayer.caught_count >= 3) {
+      // Adiciona o jogador atual na lista apropriada baseado no caughtCount
+      if (currentPlayer.caughtCount >= 3) {
         finalEliminatedPlayers = [
           ...eliminatedPlayersArray,
           [currentPlayer.id, currentPlayer],
@@ -134,7 +134,7 @@ export function GameUI({
 
                   <span className="flex flex-row gap-1">
                     {Array.from({ length: 3 }).map((_, i) => {
-                      const filled = i < 3 - (player.caught_count ?? 0);
+                      const filled = i < 3 - (player.caughtCount ?? 0);
 
                       return (
                         <HeartSolid

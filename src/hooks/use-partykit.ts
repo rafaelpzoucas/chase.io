@@ -133,7 +133,7 @@ export function usePartyKit(
               message.payload.forEach((player: Player) => {
                 if (player.id === socket.id) {
                   setCurrentPlayer(player);
-                } else if (player.caught_count < 3) {
+                } else if (player.caughtCount < 3) {
                   activeOthers.set(player.id, player);
                 }
               });
