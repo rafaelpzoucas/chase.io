@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Pixelify_Sans, Tiny5 } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const pixelify = Pixelify_Sans({
   variable: "--font-pixelify_sans",
@@ -25,7 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${tiny5.variable} antialiased dark`}>{children}</body>
+      <body className={`${tiny5.variable} antialiased dark`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
